@@ -95,7 +95,9 @@ app.post('/hello', (req, res) => {
     res.json({ success: 'I can really pass back whatever i want' })
 })
 
-app.get('/all-cats', (req, res) => {
+
+// client.query in Callbacks
+app.get('/all-cats-callback', (req, res) => {
     const sqlQuery = 'SELECT * FROM cats;'
     const whenQueryDone = (err, result) => {
         if (err) {
@@ -106,6 +108,23 @@ app.get('/all-cats', (req, res) => {
     }
     client.query(sqlQuery, whenQueryDone);
 })
+
+
+// client.query with promises
+
+app.get('/all-cats-promise', (req, res) => {
+
+    const sqlQuery = 'SELECT * FROM cats;'
+
+    const handlePromise = (result) => {
+        res.send(result.rows)
+    }
+
+    client.query(sqlQuery).then(handlePromise).catch((err) => { res.send(err) })
+})
+
+
+
 
 app.get('/cat/:id', (req, res) => {
     const { id } = req.params
