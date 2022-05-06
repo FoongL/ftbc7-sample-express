@@ -1,7 +1,7 @@
 
 const express = require('express')
 // const  methodOverride = require("method-override") ;
-const { Client } = require('pg')
+const { Pool } = require('pg')
 
 
 
@@ -23,9 +23,8 @@ const pgConnectionConfigs = {
     port: 5432, // Postgres server always runs on this port
 };
 
-const client = new Client(pgConnectionConfigs);
+const pool = new Pool(pgConnectionConfigs);
 
-client.connect()
 
 // const whenQueryDone = (error, result) => {
 //     // this error is anything that goes wrong with the query
@@ -106,7 +105,7 @@ app.get('/all-cats-callback', (req, res) => {
         }
         res.send(result.rows)
     }
-    client.query(sqlQuery, whenQueryDone);
+    pool.query(sqlQuery, whenQueryDone);
 })
 
 
@@ -120,7 +119,7 @@ app.get('/all-cats-promise', (req, res) => {
         res.send(result.rows)
     }
 
-    client.query(sqlQuery).then(handlePromise).catch((err) => { res.send(err) })
+    pool.query(sqlQuery).then(handlePromise).catch((err) => { res.send(err) })
 })
 
 
@@ -140,7 +139,7 @@ app.get('/cat/:id', (req, res) => {
         }
         res.send(result.rows)
     }
-    client.query(sqlQuery, whenQueryDone);
+    pool.query(sqlQuery, whenQueryDone);
 })
 
 
