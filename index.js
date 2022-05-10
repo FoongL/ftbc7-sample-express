@@ -83,6 +83,7 @@ app.get('/user-data', (request, response) => {
 });
 
 app.get('/', (req, res) => {
+    console.log('MY COOKIES!',req.headers.cookie)
     res.render('form')
 })
 
@@ -140,6 +141,13 @@ app.get('/cat/:id', (req, res) => {
         res.send(result.rows)
     }
     pool.query(sqlQuery, whenQueryDone);
+})
+
+
+// COOKIE SETTING ROUTE
+app.get('/cookie-setter', (req, res) => {
+    res.cookie('Cookie','I made it in here')
+    res.send('Cookie has been set')
 })
 
 
