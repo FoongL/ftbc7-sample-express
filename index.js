@@ -2,6 +2,8 @@
 const express = require('express')
 // const  methodOverride = require("method-override") ;
 const { Pool } = require('pg')
+const jsSHA = require('jssha')
+const cookieParser = require('cookie-parser')
 
 
 
@@ -11,6 +13,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.set('view engine', 'ejs')
 app.use(express.static("public"));
+app.use(cookieParser())
 
 
 
@@ -83,7 +86,8 @@ app.get('/user-data', (request, response) => {
 });
 
 app.get('/', (req, res) => {
-    console.log('MY COOKIES!',req.headers.cookie)
+    console.log('MY COOKIES!', req.headers.cookie)
+    console.log('my cookies with parser', req.cookies)
     res.render('form')
 })
 
@@ -146,8 +150,64 @@ app.get('/cat/:id', (req, res) => {
 
 // COOKIE SETTING ROUTE
 app.get('/cookie-setter', (req, res) => {
-    res.cookie('Cookie','I made it in here')
+    res.cookie('Cookie', 'I made it in here')
     res.send('Cookie has been set')
+})
+
+
+// USER SIGNUP ROUTE
+app.get('/signup/:name/:email/:password', (req, res) => {
+    const { name, email, password } = req.params
+    const shaObj = new jsSHA('SHA-512', 'TEXT', { encoding: 'UTF8' });
+    shaObj.update(password);
+    const hash = shaObj.getHash('HEX');
+
+    const sqlQuery = `INSERT INTO users (name, email, password) VALUES ('${name}', '${email}', '${hash}');`
+    const whenQueryDone = (err) => {
+        if (err) {
+            console.log(err)
+            res.send(err)
+            return
+        }
+        res.send('User saved into the DB')
+    }
+
+    pool.query(sqlQuery, whenQueryDone)
+
+})
+
+app.get('/login/:email/:password', (req, res) => {
+    const { email, password } = req.params
+
+    const findUser = `SELECT * FROM users WHERE email = '${email}';`
+
+    const userQueryDone = (err, result) =>{
+        if (err){
+            console.log(err)
+            res.send(err)
+            return
+        }
+        if (result.rows.length === 0) {
+            res.send('No such user found')
+            return
+        }
+        const user = result.rows[0]
+
+    const shaObj = new jsSHA('SHA-512', 'TEXT', { encoding: 'UTF8' });
+    shaObj.update(password);
+    const hash = shaObj.getHash('HEX');
+
+        // WE NEED TO COMPARED HASH TO SAVED PASSWORD
+        if (hash === user.password){
+            res.cookie('logedIn', true)
+            res.send('sign in successful')
+            return
+        }
+        res.send('Wrong Password')
+    }
+
+    pool.query(findUser, userQueryDone)
+    
 })
 
 
