@@ -110,21 +110,39 @@ app.get('/all-cats-callback', (req, res) => {
         }
         res.send(result.rows)
     }
+
+    //@params sqlQuery
     pool.query(sqlQuery, whenQueryDone);
+
+    pool.query(sqlQuery, (err, result) => {
+        if (err) {
+            res.send(err)
+            return
+        }
+        res.send(result.rows)
+    })
 })
 
 
-// client.query with promises
-
+// client.query with promises with a chain of promises
 app.get('/all-cats-promise', (req, res) => {
 
     const sqlQuery = 'SELECT * FROM cats;'
 
     const handlePromise = (result) => {
-        res.send(result.rows)
+        console.log('I am in the first .then(), and i will pass back', result.rows)
+        return result.rows
+    }
+    const secondThen = (secondResult) =>{
+        console.log('Second result:', secondResult)
+        res.send(secondResult)
     }
 
-    pool.query(sqlQuery).then(handlePromise).catch((err) => { res.send(err) })
+    const thirdThen = (thirdResult)=>{
+        // will only recieve things returned from secondThen
+    }
+
+    pool.query(sqlQuery).then(handlePromise).then(secondThen).then(thirdThen).catch((err) => { res.send(err) })
 })
 
 
