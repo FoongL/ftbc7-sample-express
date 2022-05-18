@@ -91,6 +91,28 @@ app.get('/', (req, res) => {
     res.render('form')
 })
 
+
+// ALL THE PAGES I LET PUBLIC SEE
+
+// middleware --> WILL ONLY EFFECT ALL ROUTES AFTER THIS LINE
+app.use((req,res,next)=>{
+    console.log('I am a middleware')
+    console.log(req.cookies)
+    if(req.cookies.loggedIn !== true){
+        console.log('this guy tried to access your page without loggin in')
+        res.redirect('/')
+        return
+    }
+    // req.random='I am just passing something random in'
+    next()
+})
+
+
+
+// ALL THE PAGES THAT ARE PRIVATE
+
+
+
 app.post('/hello', (req, res) => {
     const { fname, lname } = req.body
     console.log(`${fname} ${lname} has submitted a POST request`)
@@ -100,8 +122,15 @@ app.post('/hello', (req, res) => {
 })
 
 
+
+const secondMiddleware = () => (req, res, next) =>{
+    console.log('i am the second middleware')
+    console.log(req.random)
+    next()
+}
 // client.query in Callbacks
-app.get('/all-cats-callback', (req, res) => {
+app.get('/all-cats-callback', secondMiddleware(), (req, res) => {
+    console.log('i made it through!')
     const sqlQuery = 'SELECT * FROM cats;'
     const whenQueryDone = (err, result) => {
         if (err) {
@@ -114,19 +143,19 @@ app.get('/all-cats-callback', (req, res) => {
     //@params sqlQuery
     pool.query(sqlQuery, whenQueryDone);
 
-    pool.query(sqlQuery, (err, result) => {
-        if (err) {
-            res.send(err)
-            return
-        }
-        res.send(result.rows)
-    })
+    // pool.query(sqlQuery, (err, result) => {
+    //     if (err) {
+    //         res.send(err)
+    //         return
+    //     }
+    //     res.send(result.rows)
+    // })
 })
 
 
 // client.query with promises with a chain of promises
 app.get('/all-cats-promise', (req, res) => {
-
+    console.log(req.random)
     const sqlQuery = 'SELECT * FROM cats;'
 
     const handlePromise = (result) => {
